@@ -36,26 +36,33 @@ void HandleMotion( int x, int y, int mask )
 int bufferpts[32*2*3];
 char buffermts[32*128*3];
 int buffertimeto[32*3];
+int xscale[2] = {0, 400000};
+int yscale[2] = {0, 400000};
+short screenx, screeny;
 
 void my_light_process( struct SurviveObject * so, int sensor_id, int acode, int timeinsweep, uint32_t timecode, uint32_t length  )
 {
 	if( acode == -1 ) return;
-//return;
+
 	int jumpoffset = sensor_id;
 	if( strcmp( so->codename, "WM0" ) == 0 ) jumpoffset += 32;
 	else if( strcmp( so->codename, "WM1" ) == 0 ) jumpoffset += 64;
 
+	if (screenx == 0) screenx = 1;
+	if (screeny == 0) screeny = 1;
+	int xdiv = (xscale[1] - xscale[0]) / screenx;
+	int ydiv = (yscale[1] - yscale[0]) / screeny;
 
 	if( acode == 0 || acode == 2 ) //data = 0
 	{
 		printf( "L X %s %d %d %d %d %d\n", so->codename, timecode, sensor_id, acode, timeinsweep, length );
-		bufferpts[jumpoffset*2+0] = (timeinsweep-100000)/500;
+		bufferpts[jumpoffset*2+0] = (timeinsweep-xscale[0])/xdiv;
 		buffertimeto[jumpoffset] = 0;
 	}
 	if( acode == 1 || acode == 3 ) //data = 1
 	{
 		printf( "L Y %s %d %d %d %d %d\n", so->codename, timecode, sensor_id, acode, timeinsweep, length );
-		bufferpts[jumpoffset*2+1] = (timeinsweep-100000)/500;
+		bufferpts[jumpoffset*2+1] = (timeinsweep-yscale[0])/ydiv;
 		buffertimeto[jumpoffset] = 0;
 	}
 
@@ -63,13 +70,13 @@ void my_light_process( struct SurviveObject * so, int sensor_id, int acode, int 
 	if( acode == 4 || acode == 6 ) //data = 0
 	{
 		printf( "R X %s %d %d %d %d %d\n", so->codename, timecode, sensor_id, acode, timeinsweep, length );
-		bufferpts[jumpoffset*2+0] = (timeinsweep-100000)/500;
+		bufferpts[jumpoffset*2+0] = (timeinsweep-xscale[0])/xdiv;
 		buffertimeto[jumpoffset] = 0;
 	}
 	if( acode == 5 || acode == 7 ) //data = 1
 	{
 		printf( "R Y %s %d %d %d %d %d\n", so->codename, timecode, sensor_id, acode, timeinsweep, length );
-		bufferpts[jumpoffset*2+1] = (timeinsweep-100000)/500;
+		bufferpts[jumpoffset*2+1] = (timeinsweep-yscale[0])/ydiv;
 		buffertimeto[jumpoffset] = 0;
 	}
 
@@ -85,12 +92,8 @@ return;
 	}
 }
 
-
-
-
 void * GuiThread( void * v )
 {
-	short screenx, screeny;
 	while(1)
 	{
 		CNFGHandleInput();
