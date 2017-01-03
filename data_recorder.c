@@ -104,7 +104,7 @@ void * GuiThread( void * v )
 		int i;
 		for( i = 0; i < 32*3; i++ )
 		{
-			if( buffertimeto[i] < 50 )
+			if( buffertimeto[i] < 50 && bufferpts[i*2+0] > 0 && bufferpts[i*2+1] > 0)
 			{
 				uint32_t color = i * 3231349;
 				uint8_t r = color & 0xff;
